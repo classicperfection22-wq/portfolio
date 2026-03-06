@@ -99,7 +99,7 @@ export default function Contact() {
 
           {/* CTA */}
           <div className="text-center">
-            <a href="mailto:" className="btn-primary inline-block text-base px-10 py-4">
+            <a href="mailto:Larryhoward103@gmail.com" className="btn-primary inline-block text-base px-10 py-4">
               Send a Message
             </a>
           </div>
