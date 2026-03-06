@@ -49,7 +49,7 @@ export default function About() {
 
             <div className="mt-8 flex flex-wrap gap-4">
               <a href="#projects" className="btn-primary">See My Work</a>
-              <a href="/Resume.docx" className="btn-outline" download>Download Resume</a>
+              <a href="/portfolio/Resume.docx" className="btn-outline" download>Download Resume</a>
             </div>
           </div>
 
