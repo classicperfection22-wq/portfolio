@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const links = [
   {
@@ -38,8 +38,13 @@ const links = [
   },
 ]
 
+// Replace YOUR_FORM_ID with your Formspree form ID
+const FORMSPREE_ID = 'YOUR_FORM_ID'
+
 export default function Contact() {
   const ref = useRef(null)
+  const [status, setStatus] = useState('idle') // idle | sending | success | error
+  const [form, setForm] = useState({ name: '', email: '', message: '' })
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -50,13 +55,37 @@ export default function Contact() {
     return () => observer.disconnect()
   }, [])
 
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value })
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setStatus('sending')
+    try {
+      const res = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(form),
+      })
+      if (res.ok) {
+        setStatus('success')
+        setForm({ name: '', email: '', message: '' })
+      } else {
+        setStatus('error')
+      }
+    } catch {
+      setStatus('error')
+    }
+  }
+
   return (
     <section id="contact" className="py-24 px-6">
-      {/* Background accent */}
-      <div className="relative max-w-4xl mx-auto">
+      <div className="relative max-w-5xl mx-auto">
         <div className="orb w-96 h-96 bg-purple" style={{ top: '-50%', left: '50%', transform: 'translateX(-50%)', opacity: 0.08 }} />
 
         <div ref={ref} className="reveal relative z-10">
+          {/* Heading */}
           <div className="text-center mb-14">
             <p className="text-cyan-400 font-display font-semibold text-sm tracking-widest uppercase mb-3">
               Let's Connect
@@ -70,38 +99,102 @@ export default function Contact() {
             </p>
           </div>
 
-          {/* Contact cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
-            {links.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                target={link.href.startsWith('http') ? '_blank' : undefined}
-                rel="noopener noreferrer"
-                className="group bg-card rounded-2xl p-6 border border-white/5 hover:border-white/15 transition-all duration-300 flex flex-col items-center gap-3 text-center hover:-translate-y-1"
-                style={{ '--hover-color': link.color }}
-              >
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110"
-                  style={{ background: `${link.color}18`, color: link.color }}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            {/* Contact links */}
+            <div className="lg:col-span-2 flex flex-col gap-4">
+              {links.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  target={link.href.startsWith('http') ? '_blank' : undefined}
+                  rel="noopener noreferrer"
+                  className="group bg-card rounded-2xl p-5 border border-white/5 hover:border-white/15 transition-all duration-300 flex items-center gap-4 hover:-translate-y-1"
                 >
-                  {link.icon}
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold mb-1">{link.label}</p>
-                  <p className="text-slate-200 text-sm font-medium group-hover:text-white transition-colors">
-                    {link.value}
-                  </p>
-                </div>
-              </a>
-            ))}
-          </div>
+                  <div
+                    className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110"
+                    style={{ background: `${link.color}18`, color: link.color }}
+                  >
+                    {link.icon}
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">{link.label}</p>
+                    <p className="text-slate-200 text-sm font-medium group-hover:text-white transition-colors">
+                      {link.value}
+                    </p>
+                  </div>
+                </a>
+              ))}
+            </div>
 
-          {/* CTA */}
-          <div className="text-center">
-            <a href="mailto:Larryhoward103@gmail.com" className="btn-primary inline-block text-base px-10 py-4">
-              Send a Message
-            </a>
+            {/* Contact form */}
+            <div className="lg:col-span-3">
+              <form
+                onSubmit={handleSubmit}
+                className="bg-card rounded-2xl p-8 border border-white/5 flex flex-col gap-5"
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs text-slate-400 font-semibold uppercase tracking-wide">Name</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={form.name}
+                      onChange={handleChange}
+                      required
+                      placeholder="John Smith"
+                      className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-cyan-500/50 focus:bg-white/8 transition-all"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs text-slate-400 font-semibold uppercase tracking-wide">Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      required
+                      placeholder="john@company.com"
+                      className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-cyan-500/50 focus:bg-white/8 transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs text-slate-400 font-semibold uppercase tracking-wide">Message</label>
+                  <textarea
+                    name="message"
+                    value={form.message}
+                    onChange={handleChange}
+                    required
+                    rows={5}
+                    placeholder="Tell me about the role or project..."
+                    className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-cyan-500/50 focus:bg-white/8 transition-all resize-none"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={status === 'sending' || status === 'success'}
+                  className="btn-primary w-full text-center disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  {status === 'sending' && 'Sending...'}
+                  {status === 'success' && 'Message Sent!'}
+                  {status === 'error' && 'Try Again'}
+                  {status === 'idle' && 'Send Message'}
+                </button>
+
+                {status === 'success' && (
+                  <p className="text-emerald-400 text-sm text-center">
+                    Thanks! I'll get back to you soon.
+                  </p>
+                )}
+                {status === 'error' && (
+                  <p className="text-red-400 text-sm text-center">
+                    Something went wrong. Email me directly at Larryhoward103@gmail.com
+                  </p>
+                )}
+              </form>
+            </div>
           </div>
         </div>
       </div>
